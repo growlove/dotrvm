@@ -1,0 +1,88 @@
+#!/bin/sh
+
+##### CONSTANTS
+
+PARAM_COUNT=$#
+VERSION=$1
+GEMSET=$2
+
+##### FUNCTIONS
+
+usage() {
+    echo -e "dotrvm is a simple rvm dotfiles generator. Plop in your desired ruby
+version and gemset name as arguments and dotrvm takes care of the rest.\n"
+	echo -e "  Usage:"
+	echo -e "    dotrvm -h/--help"
+	echo -e "    dotrvm [ruby version] [gemset name]"
+}
+
+check_params() {
+    # check for help flags
+    if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+        usage
+        exit 0
+    fi
+
+    # check for correct number of params
+    if [ "$PARAM_COUNT" != "2" ]; then
+        echo "dotrvm: invalid parameters (-h will show valid usage)" >&2
+        exit 1
+    fi
+}
+
+check_version() {
+    if [ -f .ruby-version ]; then
+        overwrite_version
+    else
+        write_version=true
+    fi
+}
+
+overwrite_version() {
+    echo ".ruby-version exists. Overwrite? [Yn]"
+    read selection
+    if [ "$selection" = "Y" ] || [ "$selection" = "y" ] || [ "$selection" = "" ]; then
+        write_version=true
+    else
+        write_version=false
+    fi
+}
+
+check_gemset() {
+    if [ -f .ruby-gemset ]; then
+        overwrite_gemset
+    else
+        write_gemset=true
+    fi
+}
+
+overwrite_gemset() {
+    echo ".ruby-gemset exists. Overwrite? [Yn]"
+    read selection
+    if [ "$selection" = "Y" ] || [ "$selection" = "y" ] || [ "$selection" = "" ]; then
+        write_gemset=true
+    else
+        write_gemset=false
+    fi
+}
+
+##### MAIN
+
+check_params $1
+
+check_version
+check_gemset
+
+if [ "$write_version" = "true" ]; then
+    echo "Writing '$1' to .ruby-version."
+    touch .ruby-version
+    echo $VERSION > .ruby-version
+fi
+
+if [ "$write_gemset" = "true" ]; then
+    echo "Writing '$2' to .ruby-gemset."
+    touch .ruby-gemset
+    echo $GEMSET > .ruby-gemset
+fi
+
+exit 0
